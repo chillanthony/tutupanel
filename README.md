@@ -14,14 +14,11 @@
 - SQLite (better-sqlite3) + 本地文件存储
 - Caddy 反向代理 → Next.js (port 3000)
 
-## To-do
-
-- [ ] DNS 指向服务器（配置 A 记录）
-- [ ] 移动端样式检查（真机验证）
-
 > 完整部署步骤见 [`deploy/README.md`](deploy/README.md)。
 
-## 美化路线图（未实施）
+## To-do
+
+- [ ] 部署到服务器
 
 ### 视觉风格
 - [ ] 暖色系配色（米白 / 杏色 / 草绿）替换默认中性灰

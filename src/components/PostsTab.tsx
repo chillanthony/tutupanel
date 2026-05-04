@@ -15,21 +15,18 @@ function formatTime(ts: number) {
   return d.toLocaleString("zh-CN", { hour12: false });
 }
 
-export default function PostsTab() {
+export default function PostsTab({ adminToken }: { adminToken: string }) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [nickname, setNickname] = useState("");
   const [content, setContent] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [adminToken, setAdminToken] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("tutupanel:nickname");
     if (saved) setNickname(saved);
-    const t = localStorage.getItem("tutupanel:adminToken");
-    if (t) setAdminToken(t);
     void load();
   }, []);
 

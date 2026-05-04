@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PostsTab from "@/components/PostsTab";
 import FeedingTab from "@/components/FeedingTab";
 import TipsTab from "@/components/TipsTab";
@@ -15,13 +15,78 @@ const TABS: { key: TabKey; label: string }[] = [
 
 export default function Home() {
   const [tab, setTab] = useState<TabKey>("posts");
+  const [adminToken, setAdminToken] = useState("");
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [draftToken, setDraftToken] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("tutupanel:adminToken") || "";
+    setAdminToken(saved);
+    setDraftToken(saved);
+  }, []);
+
+  function saveToken() {
+    const t = draftToken.trim();
+    if (t) localStorage.setItem("tutupanel:adminToken", t);
+    else localStorage.removeItem("tutupanel:adminToken");
+    setAdminToken(t);
+    setAdminOpen(false);
+  }
+
+  function clearToken() {
+    localStorage.removeItem("tutupanel:adminToken");
+    setAdminToken("");
+    setDraftToken("");
+    setAdminOpen(false);
+  }
 
   return (
     <div className="min-h-screen bg-amber-50/60 dark:bg-stone-950">
       <header className="border-b border-stone-200 bg-gradient-to-b from-orange-50 to-amber-50 dark:border-stone-800 dark:from-stone-900 dark:to-stone-950">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
           <h1 className="text-lg font-semibold text-stone-800 dark:text-stone-100">🐰 兔兔护理队</h1>
+          <button
+            onClick={() => setAdminOpen((v) => !v)}
+            className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+              adminToken
+                ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200"
+                : "border-stone-300 bg-white text-stone-600 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300"
+            }`}
+            title={adminToken ? "已登录管理员" : "管理员登录"}
+          >
+            🔑 {adminToken ? "管理员" : "管理员登录"}
+          </button>
         </div>
+
+        {adminOpen && (
+          <div className="mx-auto max-w-3xl px-4 pb-3">
+            <div className="flex flex-col gap-2 rounded border border-stone-200 bg-white p-3 text-sm dark:border-stone-800 dark:bg-stone-900 sm:flex-row">
+              <input
+                type="password"
+                value={draftToken}
+                onChange={(e) => setDraftToken(e.target.value)}
+                placeholder="管理员口令"
+                className="flex-1 rounded border border-stone-300 bg-white px-3 py-2 text-sm dark:border-stone-700 dark:bg-stone-800"
+                onKeyDown={(e) => e.key === "Enter" && saveToken()}
+              />
+              <button
+                onClick={saveToken}
+                className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+              >
+                保存
+              </button>
+              {adminToken && (
+                <button
+                  onClick={clearToken}
+                  className="rounded-full border border-stone-300 px-4 py-2 text-sm text-stone-600 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800"
+                >
+                  退出
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         <nav className="mx-auto flex max-w-3xl gap-1 px-2">
           {TABS.map((t) => (
             <button
@@ -40,9 +105,9 @@ export default function Home() {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-6">
-        {tab === "posts" && <PostsTab />}
+        {tab === "posts" && <PostsTab adminToken={adminToken} />}
         {tab === "feeding" && <FeedingTab />}
-        {tab === "tips" && <TipsTab />}
+        {tab === "tips" && <TipsTab adminToken={adminToken} />}
       </main>
     </div>
   );
