@@ -75,19 +75,19 @@ export default function TipsTab() {
 
   return (
     <div className="flex flex-col gap-6">
-      <details className="rounded border border-zinc-200 bg-white p-3 text-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <summary className="cursor-pointer text-zinc-600 dark:text-zinc-300">管理员模式</summary>
+      <details className="rounded border border-stone-200 bg-white p-3 text-sm dark:border-stone-800 dark:bg-stone-900">
+        <summary className="cursor-pointer text-stone-600 dark:text-stone-300">管理员模式</summary>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
           <input
             type="password"
             value={token}
             onChange={(e) => setToken(e.target.value)}
             placeholder="管理员口令"
-            className="flex-1 rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+            className="flex-1 rounded border border-stone-300 bg-white px-3 py-2 text-sm dark:border-stone-700 dark:bg-stone-800"
           />
           <button
             onClick={startNew}
-            className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-black"
+            className="rounded-full bg-emerald-600 hover:bg-emerald-700 px-4 py-2 text-sm font-medium text-white dark:bg-emerald-500 dark:hover:bg-emerald-600"
           >
             新增须知
           </button>
@@ -95,31 +95,31 @@ export default function TipsTab() {
       </details>
 
       {editingId !== null && (
-        <div className="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex flex-col gap-2 rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
           <input
             value={draftTitle}
             onChange={(e) => setDraftTitle(e.target.value)}
             placeholder="标题"
-            className="w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+            className="w-full rounded border border-stone-300 bg-white px-3 py-2 text-sm dark:border-stone-700 dark:bg-stone-800"
           />
           <textarea
             value={draftBody}
             onChange={(e) => setDraftBody(e.target.value)}
             placeholder="内容支持 Markdown"
             rows={10}
-            className="w-full rounded border border-zinc-300 bg-white px-3 py-2 font-mono text-sm dark:border-zinc-700 dark:bg-zinc-800"
+            className="w-full rounded border border-stone-300 bg-white px-3 py-2 font-mono text-sm dark:border-stone-700 dark:bg-stone-800"
           />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setEditingId(null)}
-              className="rounded-full border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
+              className="rounded-full border border-stone-300 px-4 py-2 text-sm dark:border-stone-700"
             >
               取消
             </button>
             <button
               onClick={save}
-              className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-black"
+              className="rounded-full bg-emerald-600 hover:bg-emerald-700 px-4 py-2 text-sm font-medium text-white dark:bg-emerald-500 dark:hover:bg-emerald-600"
             >
               保存
             </button>
@@ -129,20 +129,20 @@ export default function TipsTab() {
 
       <ul className="flex flex-col gap-3">
         {tips.length === 0 && (
-          <li className="rounded-lg border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
+          <li className="rounded-lg border border-dashed border-stone-300 p-6 text-center text-sm text-stone-500 dark:border-stone-700">
             还没有须知，开管理员模式新增一条吧
           </li>
         )}
         {tips.map((t) => (
-          <li key={t.id} className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <li key={t.id} className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-semibold">{t.title}</h3>
               {token && (
                 <div className="flex gap-2 text-xs">
-                  <button onClick={() => startEdit(t)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white">
+                  <button onClick={() => startEdit(t)} className="text-stone-500 hover:text-stone-900 dark:hover:text-white">
                     编辑
                   </button>
-                  <button onClick={() => remove(t.id)} className="text-zinc-400 hover:text-red-500">
+                  <button onClick={() => remove(t.id)} className="text-stone-400 hover:text-red-500">
                     删除
                   </button>
                 </div>

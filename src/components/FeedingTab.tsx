@@ -92,7 +92,7 @@ export default function FeedingTab() {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <section className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
         <h2 className="text-sm font-medium">今日打卡 · {today}</h2>
 
         {todayFeeding ? (
@@ -101,28 +101,28 @@ export default function FeedingTab() {
             <p className="text-sm">
               今天 <span className="font-semibold">{todayFeeding.nickname}</span> 已经喂过啦
             </p>
-            <p className="text-xs text-zinc-500">{formatTime(todayFeeding.created_at)}</p>
+            <p className="text-xs text-stone-500">{formatTime(todayFeeding.created_at)}</p>
             <button
               onClick={undo}
-              className="mt-2 text-xs text-zinc-400 hover:text-red-500"
+              className="mt-2 text-xs text-stone-400 hover:text-red-500"
             >
               撤销打卡
             </button>
           </div>
         ) : (
-          <div className="mt-4 flex flex-col items-center gap-3 rounded border border-dashed border-zinc-300 py-6 dark:border-zinc-700">
-            <p className="text-sm text-zinc-500">今天还没人喂～</p>
+          <div className="mt-4 flex flex-col items-center gap-3 rounded border border-dashed border-stone-300 py-6 dark:border-stone-700">
+            <p className="text-sm text-stone-500">今天还没人喂～</p>
             <input
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               placeholder="你的昵称"
               maxLength={32}
-              className="w-48 rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+              className="w-48 rounded border border-stone-300 bg-white px-3 py-2 text-sm dark:border-stone-700 dark:bg-stone-800"
             />
             <button
               onClick={checkIn}
               disabled={submitting}
-              className="rounded-full bg-zinc-900 px-6 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black"
+              className="rounded-full bg-emerald-600 hover:bg-emerald-700 px-6 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-emerald-500 dark:hover:bg-emerald-600"
             >
               {submitting ? "打卡中…" : "我喂啦 🐰"}
             </button>
@@ -131,11 +131,11 @@ export default function FeedingTab() {
         {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
       </section>
 
-      <section className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <section className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
         <div className="flex items-center justify-between">
           <button
             onClick={() => setCursor(new Date(year, month - 2, 1))}
-            className="rounded px-2 py-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="rounded px-2 py-1 text-sm hover:bg-stone-100 dark:hover:bg-stone-800"
           >
             ←
           </button>
@@ -144,7 +144,7 @@ export default function FeedingTab() {
           </h2>
           <button
             onClick={() => setCursor(new Date(year, month, 1))}
-            className="rounded px-2 py-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="rounded px-2 py-1 text-sm hover:bg-stone-100 dark:hover:bg-stone-800"
           >
             →
           </button>
@@ -152,7 +152,7 @@ export default function FeedingTab() {
 
         <div className="mt-3 grid grid-cols-7 gap-1 text-center text-xs">
           {["日", "一", "二", "三", "四", "五", "六"].map((d) => (
-            <div key={d} className="py-1 text-zinc-500">
+            <div key={d} className="py-1 text-stone-500">
               {d}
             </div>
           ))}
@@ -165,7 +165,7 @@ export default function FeedingTab() {
             const f = monthMap.get(dateStr);
             const tone = f
               ? "bg-green-200 text-green-900 dark:bg-green-900/50 dark:text-green-200"
-              : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800";
+              : "bg-stone-100 text-stone-400 dark:bg-stone-800";
             const tooltip = f ? `${dateStr} · ${f.nickname}` : `${dateStr} · 未打卡`;
             return (
               <div

@@ -43,3 +43,7 @@ next-env.d.ts
 # app data
 /data
 /public/uploads
+
+# 参考资料（不进仓库）
+/src/zhibanbiao.jpg
+/src/zhinan.pdf

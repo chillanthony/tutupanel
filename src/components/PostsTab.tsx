@@ -81,13 +81,13 @@ export default function PostsTab() {
 
   return (
     <div className="flex flex-col gap-6">
-      <form onSubmit={submit} className="flex flex-col gap-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <form onSubmit={submit} className="flex flex-col gap-3 rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
         <input
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
           placeholder="你的昵称"
           maxLength={32}
-          className="w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+          className="w-full rounded border border-stone-300 bg-white px-3 py-2 text-sm dark:border-stone-700 dark:bg-stone-800"
         />
         <textarea
           value={content}
@@ -95,7 +95,7 @@ export default function PostsTab() {
           placeholder="说点什么吧～"
           rows={3}
           maxLength={4000}
-          className="w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+          className="w-full rounded border border-stone-300 bg-white px-3 py-2 text-sm dark:border-stone-700 dark:bg-stone-800"
         />
         <input
           ref={fileRef}
@@ -110,7 +110,7 @@ export default function PostsTab() {
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-full bg-zinc-900 px-5 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black"
+            className="rounded-full bg-emerald-600 hover:bg-emerald-700 px-5 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-emerald-500 dark:hover:bg-emerald-600"
           >
             {submitting ? "发布中…" : "发布"}
           </button>
@@ -119,15 +119,15 @@ export default function PostsTab() {
 
       <ul className="flex flex-col gap-3">
         {posts.length === 0 && (
-          <li className="rounded-lg border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
+          <li className="rounded-lg border border-dashed border-stone-300 p-6 text-center text-sm text-stone-500 dark:border-stone-700">
             还没人留言，做第一个吧 🐰
           </li>
         )}
         {posts.map((p) => (
-          <li key={p.id} className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <li key={p.id} className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">{p.nickname}</span>
-              <span className="text-xs text-zinc-500">{formatTime(p.createdAt)}</span>
+              <span className="text-xs text-stone-500">{formatTime(p.createdAt)}</span>
             </div>
             {p.content && <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{p.content}</p>}
             {p.images.length > 0 && (
@@ -143,7 +143,7 @@ export default function PostsTab() {
             <div className="mt-3 flex justify-end">
               <button
                 onClick={() => remove(p.id)}
-                className="text-xs text-zinc-400 hover:text-red-500"
+                className="text-xs text-stone-400 hover:text-red-500"
               >
                 删除
               </button>
