@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Confetti from "./Confetti";
+import { useToast } from "./Toast";
 
 type Feeding = { id: number; date: string; nickname: string; created_at: number };
 
@@ -22,8 +24,9 @@ export default function FeedingTab() {
   const [monthFeedings, setMonthFeedings] = useState<Feeding[]>([]);
   const [nickname, setNickname] = useState("");
   const [cursor, setCursor] = useState(() => new Date());
-  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [confettiKey, setConfettiKey] = useState(0);
+  const { show } = useToast();
 
   useEffect(() => {
     const saved = localStorage.getItem("tutupanel:nickname");
@@ -52,8 +55,7 @@ export default function FeedingTab() {
   }
 
   async function checkIn() {
-    setError(null);
-    if (!nickname.trim()) return setError("请填写昵称");
+    if (!nickname.trim()) return show("请填写昵称", "error");
     setSubmitting(true);
     try {
       const res = await fetch("/api/feedings", {
@@ -63,10 +65,12 @@ export default function FeedingTab() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "打卡失败");
+        show(data.error || "打卡失败", "error");
         return;
       }
       localStorage.setItem("tutupanel:nickname", nickname.trim());
+      setConfettiKey((k) => k + 1);
+      show("打卡成功 🐰", "success");
       await Promise.all([loadToday(), loadMonth(monthKey(cursor))]);
     } finally {
       setSubmitting(false);
@@ -92,12 +96,13 @@ export default function FeedingTab() {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
+      <section className="relative overflow-hidden rounded-lg border border-stone-200 bg-white p-4 transition-shadow hover:shadow-md dark:border-stone-800 dark:bg-stone-900">
+        <Confetti trigger={confettiKey} />
         <h2 className="text-sm font-medium">今日打卡 · {today}</h2>
 
         {todayFeeding ? (
           <div className="mt-4 flex flex-col items-center gap-2 rounded border border-green-200 bg-green-50 py-6 dark:border-green-900/50 dark:bg-green-900/20">
-            <span className="text-3xl">✅</span>
+            <span key={confettiKey} className="animate-pop text-3xl">✅</span>
             <p className="text-sm">
               今天 <span className="font-semibold">{todayFeeding.nickname}</span> 已经喂过啦
             </p>
@@ -122,16 +127,15 @@ export default function FeedingTab() {
             <button
               onClick={checkIn}
               disabled={submitting}
-              className="rounded-full bg-emerald-600 hover:bg-emerald-700 px-6 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+              className="rounded-full bg-emerald-600 hover:bg-emerald-700 px-6 py-2 text-sm font-medium text-white transition-transform hover:scale-105 disabled:opacity-50 dark:bg-emerald-500 dark:hover:bg-emerald-600"
             >
               {submitting ? "打卡中…" : "我喂啦 🐰"}
             </button>
           </div>
         )}
-        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
       </section>
 
-      <section className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
+      <section className="rounded-lg border border-stone-200 bg-white p-4 transition-shadow hover:shadow-md dark:border-stone-800 dark:bg-stone-900">
         <div className="flex items-center justify-between">
           <button
             onClick={() => setCursor(new Date(year, month - 2, 1))}

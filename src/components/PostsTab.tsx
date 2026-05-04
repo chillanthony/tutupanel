@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Lightbox from "./Lightbox";
+import { PostSkeleton, EmptyState } from "./Skeleton";
+import { useToast } from "./Toast";
 
 type Post = {
   id: number;
@@ -17,12 +20,14 @@ function formatTime(ts: number) {
 
 export default function PostsTab({ adminToken }: { adminToken: string }) {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
   const [nickname, setNickname] = useState("");
   const [content, setContent] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { show } = useToast();
 
   useEffect(() => {
     const saved = localStorage.getItem("tutupanel:nickname");
@@ -31,16 +36,19 @@ export default function PostsTab({ adminToken }: { adminToken: string }) {
   }, []);
 
   async function load() {
-    const res = await fetch("/api/posts", { cache: "no-store" });
-    const data = await res.json();
-    setPosts(data.posts ?? []);
+    try {
+      const res = await fetch("/api/posts", { cache: "no-store" });
+      const data = await res.json();
+      setPosts(data.posts ?? []);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
-    if (!nickname.trim()) return setError("请填写昵称");
-    if (!content.trim() && files.length === 0) return setError("写点什么或贴张图");
+    if (!nickname.trim()) return show("请填写昵称", "error");
+    if (!content.trim() && files.length === 0) return show("写点什么或贴张图", "error");
 
     setSubmitting(true);
     try {
@@ -65,9 +73,10 @@ export default function PostsTab({ adminToken }: { adminToken: string }) {
       setContent("");
       setFiles([]);
       if (fileRef.current) fileRef.current.value = "";
+      show("发布成功", "success");
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "出错了");
+      show(err instanceof Error ? err.message : "出错了", "error");
     } finally {
       setSubmitting(false);
     }
@@ -81,7 +90,7 @@ export default function PostsTab({ adminToken }: { adminToken: string }) {
       headers: { "x-admin-token": adminToken },
     });
     if (!res.ok) {
-      setError("删除失败：管理员口令无效");
+      show("删除失败：管理员口令无效", "error");
       return;
     }
     await load();
@@ -89,7 +98,10 @@ export default function PostsTab({ adminToken }: { adminToken: string }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <form onSubmit={submit} className="flex flex-col gap-3 rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
+      <form
+        onSubmit={submit}
+        className="flex flex-col gap-3 rounded-lg border border-stone-200 bg-white p-4 transition-shadow hover:shadow-md dark:border-stone-800 dark:bg-stone-900"
+      >
         <input
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
@@ -113,7 +125,6 @@ export default function PostsTab({ adminToken }: { adminToken: string }) {
           onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 9))}
           className="text-sm"
         />
-        {error && <p className="text-sm text-red-600">{error}</p>}
         <div className="flex justify-end">
           <button
             type="submit"
@@ -126,41 +137,58 @@ export default function PostsTab({ adminToken }: { adminToken: string }) {
       </form>
 
       <ul className="flex flex-col gap-3">
-        {posts.length === 0 && (
-          <li className="rounded-lg border border-dashed border-stone-300 p-6 text-center text-sm text-stone-500 dark:border-stone-700">
-            还没人留言，做第一个吧 🐰
-          </li>
+        {loading && (
+          <>
+            <PostSkeleton />
+            <PostSkeleton />
+            <PostSkeleton />
+          </>
         )}
-        {posts.map((p) => (
-          <li key={p.id} className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium">{p.nickname}</span>
-              <span className="text-xs text-stone-500">{formatTime(p.createdAt)}</span>
-            </div>
-            {p.content && <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{p.content}</p>}
-            {p.images.length > 0 && (
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                {p.images.map((src) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <a key={src} href={src} target="_blank" rel="noreferrer">
-                    <img src={src} alt="" className="aspect-square w-full rounded object-cover" />
-                  </a>
-                ))}
+        {!loading && posts.length === 0 && (
+          <EmptyState emoji="🐰" title="还没人留言" hint="做第一个留下脚印的人吧～" />
+        )}
+        {!loading &&
+          posts.map((p) => (
+            <li
+              key={p.id}
+              className="rounded-lg border border-stone-200 bg-white p-4 transition-shadow hover:shadow-md dark:border-stone-800 dark:bg-stone-900"
+            >
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">{p.nickname}</span>
+                <span className="text-xs text-stone-500">{formatTime(p.createdAt)}</span>
               </div>
-            )}
-            {adminToken && (
-              <div className="mt-3 flex justify-end">
-                <button
-                  onClick={() => remove(p.id)}
-                  className="text-xs text-stone-400 hover:text-red-500"
-                >
-                  删除
-                </button>
-              </div>
-            )}
-          </li>
-        ))}
+              {p.content && <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{p.content}</p>}
+              {p.images.length > 0 && (
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {p.images.map((src) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <button
+                      key={src}
+                      type="button"
+                      onClick={() => setLightboxSrc(src)}
+                      className="overflow-hidden rounded transition-transform hover:scale-[1.02]"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt="" className="aspect-square w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+              {adminToken && (
+                <div className="mt-3 flex justify-end">
+                  <button
+                    onClick={() => remove(p.id)}
+                    className="text-xs text-stone-400 hover:text-red-500"
+                  >
+                    删除
+                  </button>
+                </div>
+              )}
+            </li>
+          ))}
       </ul>
+
+      <Lightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
     </div>
   );
 }
