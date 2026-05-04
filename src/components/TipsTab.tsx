@@ -9,6 +9,30 @@ type Tip = { id: number; title: string; body: string; updatedAt: number };
 
 marked.setOptions({ breaks: true, gfm: true });
 
+const ACCENTS = [
+  { bar: "bg-emerald-400", tint: "bg-emerald-50 dark:bg-emerald-950/30" },
+  { bar: "bg-amber-400", tint: "bg-amber-50 dark:bg-amber-950/30" },
+  { bar: "bg-rose-400", tint: "bg-rose-50 dark:bg-rose-950/30" },
+  { bar: "bg-sky-400", tint: "bg-sky-50 dark:bg-sky-950/30" },
+  { bar: "bg-violet-400", tint: "bg-violet-50 dark:bg-violet-950/30" },
+  { bar: "bg-orange-400", tint: "bg-orange-50 dark:bg-orange-950/30" },
+];
+
+function hashCode(s: string) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function leadingEmoji(s: string): string | null {
+  const m = s.match(/^\p{Extended_Pictographic}/u);
+  return m ? m[0] : null;
+}
+
+function accentFor(title: string) {
+  return ACCENTS[hashCode(title) % ACCENTS.length];
+}
+
 export default function TipsTab({ adminToken }: { adminToken: string }) {
   const [tips, setTips] = useState<Tip[]>([]);
   const [loading, setLoading] = useState(true);
@@ -130,30 +154,40 @@ export default function TipsTab({ adminToken }: { adminToken: string }) {
           <EmptyState emoji="📋" title="还没有须知" hint="右上角登录管理员后新增一条吧" />
         )}
         {!loading &&
-          tips.map((t) => (
-            <li
-              key={t.id}
-              className="rounded-lg border border-stone-200 bg-white p-4 transition-shadow hover:shadow-md dark:border-stone-800 dark:bg-stone-900"
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold">{t.title}</h3>
-                {adminToken && (
-                  <div className="flex gap-2 text-xs">
-                    <button onClick={() => startEdit(t)} className="text-stone-500 hover:text-stone-900 dark:hover:text-white">
-                      编辑
-                    </button>
-                    <button onClick={() => remove(t.id)} className="text-stone-400 hover:text-red-500">
-                      删除
-                    </button>
+          tips.map((t) => {
+            const accent = accentFor(t.title);
+            const emoji = leadingEmoji(t.title);
+            return (
+              <li
+                key={t.id}
+                className="flex overflow-hidden rounded-lg border border-stone-200 bg-white transition-shadow hover:shadow-md dark:border-stone-800 dark:bg-stone-900"
+              >
+                <div className={`w-1.5 shrink-0 ${accent.bar}`} aria-hidden />
+                <div className={`flex-1 p-4 ${accent.tint}`}>
+                  <div className="flex items-center justify-between">
+                    <h3 className="flex items-center gap-2 text-base font-semibold">
+                      {emoji && <span aria-hidden className="text-xl leading-none">{emoji}</span>}
+                      <span>{emoji ? t.title.slice(emoji.length).trimStart() : t.title}</span>
+                    </h3>
+                    {adminToken && (
+                      <div className="flex gap-2 text-xs">
+                        <button onClick={() => startEdit(t)} className="text-stone-500 hover:text-stone-900 dark:hover:text-white">
+                          编辑
+                        </button>
+                        <button onClick={() => remove(t.id)} className="text-stone-400 hover:text-red-500">
+                          删除
+                        </button>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <article
-                className="prose prose-sm mt-3 max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: marked.parse(t.body) as string }}
-              />
-            </li>
-          ))}
+                  <article
+                    className="prose prose-sm mt-3 max-w-none dark:prose-invert"
+                    dangerouslySetInnerHTML={{ __html: marked.parse(t.body) as string }}
+                  />
+                </div>
+              </li>
+            );
+          })}
       </ul>
     </div>
   );

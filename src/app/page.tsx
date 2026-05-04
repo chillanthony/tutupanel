@@ -7,10 +7,10 @@ import TipsTab from "@/components/TipsTab";
 
 type TabKey = "posts" | "feeding" | "tips";
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: "posts", label: "留言板" },
-  { key: "feeding", label: "喂食打卡" },
-  { key: "tips", label: "养兔须知" },
+const TABS: { key: TabKey; label: string; icon: string }[] = [
+  { key: "posts", label: "留言板", icon: "💬" },
+  { key: "feeding", label: "喂食打卡", icon: "🥕" },
+  { key: "tips", label: "养兔须知", icon: "📋" },
 ];
 
 export default function Home() {
@@ -87,7 +87,7 @@ export default function Home() {
           </div>
         )}
 
-        <nav className="mx-auto flex max-w-3xl gap-1 px-2">
+        <nav className="mx-auto hidden max-w-3xl gap-1 px-2 sm:flex">
           {TABS.map((t) => (
             <button
               key={t.key}
@@ -104,11 +104,33 @@ export default function Home() {
         </nav>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-6">
+      <main className="mx-auto max-w-3xl px-4 py-6 pb-24 sm:pb-6">
         {tab === "posts" && <PostsTab adminToken={adminToken} />}
         {tab === "feeding" && <FeedingTab />}
         {tab === "tips" && <TipsTab adminToken={adminToken} />}
       </main>
+
+      <nav
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white/95 backdrop-blur sm:hidden dark:border-stone-800 dark:bg-stone-900/95"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <div className="mx-auto flex max-w-3xl">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs transition-colors ${
+                tab === t.key
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-stone-500 dark:text-stone-400"
+              }`}
+            >
+              <span className="text-lg leading-none">{t.icon}</span>
+              <span>{t.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }
