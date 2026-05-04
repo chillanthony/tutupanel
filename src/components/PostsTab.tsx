@@ -22,11 +22,14 @@ export default function PostsTab() {
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [adminToken, setAdminToken] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("tutupanel:nickname");
     if (saved) setNickname(saved);
+    const t = localStorage.getItem("tutupanel:adminToken");
+    if (t) setAdminToken(t);
     void load();
   }, []);
 
@@ -74,8 +77,16 @@ export default function PostsTab() {
   }
 
   async function remove(id: number) {
+    if (!adminToken) return;
     if (!confirm("删除这条留言？")) return;
-    await fetch(`/api/posts/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/posts/${id}`, {
+      method: "DELETE",
+      headers: { "x-admin-token": adminToken },
+    });
+    if (!res.ok) {
+      setError("删除失败：管理员口令无效");
+      return;
+    }
     await load();
   }
 
@@ -140,14 +151,16 @@ export default function PostsTab() {
                 ))}
               </div>
             )}
-            <div className="mt-3 flex justify-end">
-              <button
-                onClick={() => remove(p.id)}
-                className="text-xs text-stone-400 hover:text-red-500"
-              >
-                删除
-              </button>
-            </div>
+            {adminToken && (
+              <div className="mt-3 flex justify-end">
+                <button
+                  onClick={() => remove(p.id)}
+                  className="text-xs text-stone-400 hover:text-red-500"
+                >
+                  删除
+                </button>
+              </div>
+            )}
           </li>
         ))}
       </ul>
