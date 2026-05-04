@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-User=tutupanel
+User=root
 WorkingDirectory=/srv/tutupanel
 Environment=NODE_ENV=production
 Environment=PORT=3000
