@@ -2,6 +2,10 @@
 
 兔兔互助队社区面板，部署在 https://tutuhuliduionline.top
 
+扫码访问：
+
+<img src="src/tutu-qr.png" alt="tutuhuliduionline.top QR code" width="200" />
+
 ## 功能
 
 1. 留言板：发文字 + 上传图片
@@ -17,8 +21,6 @@
 > 完整部署步骤见 [`deploy/README.md`](deploy/README.md)。
 
 ## To-do
-
-- [ ] 部署到服务器
 
 ### 视觉风格
 - [ ] 暖色系配色（米白 / 杏色 / 草绿）替换默认中性灰
