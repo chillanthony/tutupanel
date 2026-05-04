@@ -2,11 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type Slot = "morning" | "noon" | "evening";
-type Feeding = { id: number; date: string; slot: Slot; nickname: string; created_at: number };
-
-const SLOT_LABEL: Record<Slot, string> = { morning: "早", noon: "中", evening: "晚" };
-const SLOTS: Slot[] = ["morning", "noon", "evening"];
+type Feeding = { id: number; date: string; nickname: string; created_at: number };
 
 function monthKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -16,13 +12,18 @@ function daysInMonth(year: number, month: number) {
   return new Date(year, month, 0).getDate();
 }
 
+function formatTime(ts: number) {
+  return new Date(ts).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
 export default function FeedingTab() {
   const [today, setToday] = useState<string>("");
-  const [todayFeedings, setTodayFeedings] = useState<Feeding[]>([]);
+  const [todayFeeding, setTodayFeeding] = useState<Feeding | null>(null);
   const [monthFeedings, setMonthFeedings] = useState<Feeding[]>([]);
   const [nickname, setNickname] = useState("");
   const [cursor, setCursor] = useState(() => new Date());
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("tutupanel:nickname");
@@ -41,7 +42,7 @@ export default function FeedingTab() {
     const res = await fetch("/api/feedings", { cache: "no-store" });
     const data = await res.json();
     setToday(data.today);
-    setTodayFeedings(data.feedings ?? []);
+    setTodayFeeding(data.feeding ?? null);
   }
 
   async function loadMonth(month: string) {
@@ -50,42 +51,37 @@ export default function FeedingTab() {
     setMonthFeedings(data.feedings ?? []);
   }
 
-  async function checkIn(slot: Slot) {
+  async function checkIn() {
     setError(null);
     if (!nickname.trim()) return setError("请填写昵称");
-    const res = await fetch("/api/feedings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nickname: nickname.trim(), slot }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error || "打卡失败");
-      return;
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/feedings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nickname: nickname.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "打卡失败");
+        return;
+      }
+      localStorage.setItem("tutupanel:nickname", nickname.trim());
+      await Promise.all([loadToday(), loadMonth(monthKey(cursor))]);
+    } finally {
+      setSubmitting(false);
     }
-    localStorage.setItem("tutupanel:nickname", nickname.trim());
-    await Promise.all([loadToday(), loadMonth(monthKey(cursor))]);
   }
 
-  async function undo(slot: Slot) {
-    if (!confirm("撤销这次打卡？")) return;
-    await fetch(`/api/feedings?slot=${slot}`, { method: "DELETE" });
+  async function undo() {
+    if (!confirm("撤销今日打卡？")) return;
+    await fetch("/api/feedings", { method: "DELETE" });
     await Promise.all([loadToday(), loadMonth(monthKey(cursor))]);
   }
-
-  const todayMap = useMemo(() => {
-    const m = new Map<Slot, Feeding>();
-    todayFeedings.forEach((f) => m.set(f.slot, f));
-    return m;
-  }, [todayFeedings]);
 
   const monthMap = useMemo(() => {
-    const m = new Map<string, Feeding[]>();
-    monthFeedings.forEach((f) => {
-      const list = m.get(f.date) ?? [];
-      list.push(f);
-      m.set(f.date, list);
-    });
+    const m = new Map<string, Feeding>();
+    monthFeedings.forEach((f) => m.set(f.date, f));
     return m;
   }, [monthFeedings]);
 
@@ -97,42 +93,41 @@ export default function FeedingTab() {
   return (
     <div className="flex flex-col gap-6">
       <section className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium">今日打卡 · {today}</h2>
-        </div>
-        <input
-          value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
-          placeholder="你的昵称"
-          maxLength={32}
-          className="mt-3 w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
-        />
-        <div className="mt-3 grid grid-cols-3 gap-2">
-          {SLOTS.map((s) => {
-            const done = todayMap.get(s);
-            return (
-              <div key={s} className="flex flex-col items-center gap-2 rounded border border-zinc-200 p-3 dark:border-zinc-800">
-                <span className="text-xs text-zinc-500">{SLOT_LABEL[s]}</span>
-                {done ? (
-                  <>
-                    <span className="text-lg">✅</span>
-                    <span className="text-xs text-zinc-600 dark:text-zinc-400">{done.nickname}</span>
-                    <button onClick={() => undo(s)} className="text-xs text-zinc-400 hover:text-red-500">
-                      撤销
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => checkIn(s)}
-                    className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium text-white dark:bg-white dark:text-black"
-                  >
-                    打卡
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <h2 className="text-sm font-medium">今日打卡 · {today}</h2>
+
+        {todayFeeding ? (
+          <div className="mt-4 flex flex-col items-center gap-2 rounded border border-green-200 bg-green-50 py-6 dark:border-green-900/50 dark:bg-green-900/20">
+            <span className="text-3xl">✅</span>
+            <p className="text-sm">
+              今天 <span className="font-semibold">{todayFeeding.nickname}</span> 已经喂过啦
+            </p>
+            <p className="text-xs text-zinc-500">{formatTime(todayFeeding.created_at)}</p>
+            <button
+              onClick={undo}
+              className="mt-2 text-xs text-zinc-400 hover:text-red-500"
+            >
+              撤销打卡
+            </button>
+          </div>
+        ) : (
+          <div className="mt-4 flex flex-col items-center gap-3 rounded border border-dashed border-zinc-300 py-6 dark:border-zinc-700">
+            <p className="text-sm text-zinc-500">今天还没人喂～</p>
+            <input
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              placeholder="你的昵称"
+              maxLength={32}
+              className="w-48 rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+            />
+            <button
+              onClick={checkIn}
+              disabled={submitting}
+              className="rounded-full bg-zinc-900 px-6 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black"
+            >
+              {submitting ? "打卡中…" : "我喂啦 🐰"}
+            </button>
+          </div>
+        )}
         {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
       </section>
 
@@ -167,15 +162,11 @@ export default function FeedingTab() {
           {Array.from({ length: total }).map((_, i) => {
             const day = i + 1;
             const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-            const list = monthMap.get(dateStr) ?? [];
-            const count = list.length;
-            const tone =
-              count === 0
-                ? "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"
-                : count < 3
-                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200"
-                  : "bg-green-200 text-green-900 dark:bg-green-900/50 dark:text-green-200";
-            const tooltip = list.map((f) => `${SLOT_LABEL[f.slot]}: ${f.nickname}`).join("\n") || "未打卡";
+            const f = monthMap.get(dateStr);
+            const tone = f
+              ? "bg-green-200 text-green-900 dark:bg-green-900/50 dark:text-green-200"
+              : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800";
+            const tooltip = f ? `${dateStr} · ${f.nickname}` : `${dateStr} · 未打卡`;
             return (
               <div
                 key={dateStr}
@@ -183,7 +174,7 @@ export default function FeedingTab() {
                 className={`flex aspect-square flex-col items-center justify-center rounded text-xs ${tone}`}
               >
                 <span>{day}</span>
-                {count > 0 && <span className="text-[10px]">{count}/3</span>}
+                {f && <span className="text-[10px] truncate max-w-full px-1">{f.nickname.slice(0, 3)}</span>}
               </div>
             );
           })}
