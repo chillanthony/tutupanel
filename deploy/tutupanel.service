@@ -1,0 +1,18 @@
+[Unit]
+Description=tutupanel Next.js app
+After=network.target
+
+[Service]
+Type=simple
+User=tutupanel
+WorkingDirectory=/srv/tutupanel
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=DATA_DIR=/srv/tutupanel/data
+Environment=ADMIN_TOKEN=change-me
+ExecStart=/usr/bin/npm run start
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

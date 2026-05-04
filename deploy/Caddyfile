@@ -1,0 +1,11 @@
+tutuhuliduionline.top {
+    encode zstd gzip
+
+    # 上传图片走文件，不走 Next.js（更快）
+    handle_path /uploads/* {
+        root * /srv/tutupanel/public/uploads
+        file_server
+    }
+
+    reverse_proxy 127.0.0.1:3000
+}
